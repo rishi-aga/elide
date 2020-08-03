@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
-import lombok.Data;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+
+import lombok.Data;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

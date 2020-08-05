@@ -12,10 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Runnable thread for updating AsyncQueryThread status.
@@ -34,6 +31,7 @@ public class AsyncQueryCleanerThread implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("CLEANER ***********");
         deleteAsyncQuery();
         timeoutAsyncQuery();
     }
@@ -44,10 +42,12 @@ public class AsyncQueryCleanerThread implements Runnable {
     @SuppressWarnings("unchecked")
     protected void deleteAsyncQuery() {
 
-        String cleanupDateFormatted = evaluateFormattedFilterDate(Calendar.DATE, queryCleanupDays);
+        String cleanupDateFormatted = DateFilterUtil.evaluateFormattedFilterDate(elide,
+                Calendar.DATE, queryCleanupDays);
 
         String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
 
+        System.out.println(" filterExpression " + filterExpression);
         asyncQueryDao.deleteAsyncQueryAndResultCollection(filterExpression);
 
     }
@@ -59,27 +59,11 @@ public class AsyncQueryCleanerThread implements Runnable {
     @SuppressWarnings("unchecked")
     protected void timeoutAsyncQuery() {
 
-        String filterDateFormatted = evaluateFormattedFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
+        String filterDateFormatted = DateFilterUtil.evaluateFormattedFilterDate(elide,
+                Calendar.MINUTE, maxRunTimeMinutes);
         String filterExpression = "status=in=(" + QueryStatus.PROCESSING.toString() + ","
                 + QueryStatus.QUEUED.toString() + ");createdOn=le='" + filterDateFormatted + "'";
-
+        System.out.println(" filterExpression " + filterExpression);
         asyncQueryDao.updateStatusAsyncQueryCollection(filterExpression, QueryStatus.TIMEDOUT);
-    }
-
-    /**
-     * Evaluates and subtracts the amount based on the calendar unit and amount from current date.
-     * @param calendarUnit Enum such as Calendar.DATE or Calendar.MINUTE
-     * @param amount Amount of days to be subtracted from current time
-     * @return formatted filter date
-     */
-     private String evaluateFormattedFilterDate(int calendarUnit, int amount) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.add(calendarUnit, -(amount));
-        Date filterDate = cal.getTime();
-        Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-        String filterDateFormatted = dateFormat.format(filterDate);
-        log.debug("FilterDateFormatted = {}", filterDateFormatted);
-        return filterDateFormatted;
     }
 }

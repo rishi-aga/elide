@@ -50,7 +50,7 @@ public class AsyncCleanerService {
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
         //Or maxRunTimeMinutes * 2 so that this process does not coincides with query
         //interrupt process.
-        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(defaultCleanupDelayMinutes,
+        cleaner.scheduleWithFixedDelay(cleanUpTask, 2, Math.max(defaultCleanupDelayMinutes,
                 queryRunTimeThresholdMinutes), TimeUnit.MINUTES);
     }
 

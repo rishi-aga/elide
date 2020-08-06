@@ -46,8 +46,6 @@ public class AsyncQueryCleanerThread implements Runnable {
                 Calendar.DATE, queryCleanupDays);
 
         String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
-
-        System.out.println(" filterExpression " + filterExpression);
         asyncQueryDao.deleteAsyncQueryAndResultCollection(filterExpression);
 
     }
@@ -63,7 +61,6 @@ public class AsyncQueryCleanerThread implements Runnable {
                 Calendar.MINUTE, maxRunTimeMinutes);
         String filterExpression = "status=in=(" + QueryStatus.PROCESSING.toString() + ","
                 + QueryStatus.QUEUED.toString() + ");createdOn=le='" + filterDateFormatted + "'";
-        System.out.println(" filterExpression " + filterExpression);
         asyncQueryDao.updateStatusAsyncQueryCollection(filterExpression, QueryStatus.TIMEDOUT);
     }
 }

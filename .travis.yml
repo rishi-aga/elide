@@ -7,9 +7,12 @@
     apt:
       packages:
       - libaio-dev
+    sonarcloud:
+      organization: "yahoo"
   cache:
     directories:
-      - "~/.m2"
+      - ~/.m2
+      - ~/.sonar/cache
   env:
     global:
       - secure: VV+uJlBgXRCUSj3+khXnKvbrB0bxtay3yovKAchTT83Y6+iXUAgp3b7EA1QjT0l3Hz88Y+EAVuiZqwzFRidbZwbgApaxYMJKWjHTmr+VsXXJp29J1tyGtXR1K+DUG0HO/jiRCxMVythB68BnNMIXfprpmsLFpXhKMPf41fzMaAtqSYrPdJkNvEzBDhu5hIPG9apyEcpIZNhtfwnk18DntyGFC3OVAKzEma51s0tS6NeXiZNzTvc9j0d4Fr8vyWGclAp1XKMjWzpvfRyB2EFto076V+8tJ5E3czJjJs12SDwOvEdzYeCpGk3VWboiz9DuZn41IdTLYy89OmcIooZQHViMwiatcqqHREEbuuUWZLYMEh1bUHZHRWQf2AnUScDfJB1QUKVR8mbkSr5DXto4FIsHpqofoBloDveaXkWC735DqOPwbIwe2owGZfkQv19vPpVvF3e2LyFn1vf8blR3wFBItKKZyvBTbrIVM/YxuTDfswDVlhEgHTeet0TQSy4yEoMxGTHsfk8Ykc2B0JDheWH5zhhZBdozmV5TFbM50PXjLqfqWVDD+WqzGVer1Sokfv6MMERoWKvb/LEyKO4Eq3aHgXyy2GoRQHfUh9qOOvBnNpHbtacL+NzfggLZ1Ut97QIbEoWb3VPx6lbNKxiiC4DbwR7nnc92zNJM5YU6Dog=
@@ -20,7 +23,14 @@
       - "/^[0-9]+\\.[0-9]+(\\.[0-9]+|-(alpha|beta)-[0-9]+)/"
 
   install: true
-  script: mvn -B clean verify coveralls:report
+  script:
+    - mvn -B clean verify coveralls:report
+    - mvn -B org.owasp:dependency-check-maven:check
+    - mvn -B post-site -Psonar -Dsonar.coverage.jacoco.xmlReportPaths=${TRAVIS_BUILD_DIR}/target/site/jacoco-aggregate/jacoco.xml
+    - mvn -B sonar:sonar -Psonar -Dsonar.projectKey=yahoo_elide -Dsonar.organization=yahoo -Dsonar.login=${SONAR_TOKEN} -Dsonar.coverage.jacoco.xmlReportPaths=${TRAVIS_BUILD_DIR}/target/site/jacoco-aggregate/jacoco.xml 
+    
   after_success:
     - echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
     - test "${TRAVIS_TAG}" != "" && mvn -B -DskipTests deploy --settings travis/settings.xml
+  before_cache:
+    - rm -rf ~/.m2/repository/com/yahoo/elide

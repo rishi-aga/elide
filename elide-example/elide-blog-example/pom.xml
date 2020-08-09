@@ -52,6 +52,10 @@
         <jar.finalName>elide-blog-example</jar.finalName>
         <postgres.version>42.2.14</postgres.version>
         <liquibase.version>4.0.0</liquibase.version>
+        <maven-site-plugin-version>3.7.1</maven-site-plugin-version>
+        <dependency.locations.enabled>false</dependency.locations.enabled>
+        <dependency.details.enabled>false</dependency.details.enabled>
+        <mpir.skip>true</mpir.skip>
     </properties>
 
     <dependencies>
@@ -208,6 +212,14 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-site-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <version>${maven-site-plugin-version}</version>
+                <configuration>
+                    <skipDeploy>true</skipDeploy>
+                </configuration>
             </plugin>
         </plugins>
     </build>

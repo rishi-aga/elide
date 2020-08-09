@@ -24,7 +24,7 @@
 
   install: true
   script:
-    - mvn -B clean install coveralls:report
+    - mvn -B clean install -DskipTests # coveralls:report
     - mvn -B org.owasp:dependency-check-maven:check
     - mvn -B post-site -Psonar -Dsonar.coverage.jacoco.xmlReportPaths=${TRAVIS_BUILD_DIR}/target/site/jacoco-aggregate/jacoco.xml
     - mvn -B sonar:sonar -Psonar -Dsonar.projectKey=yahoo_elide -Dsonar.organization=yahoo -Dsonar.login=${SONAR_TOKEN} -Dsonar.coverage.jacoco.xmlReportPaths=${TRAVIS_BUILD_DIR}/target/site/jacoco-aggregate/jacoco.xml 

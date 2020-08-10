@@ -27,6 +27,7 @@
     - mvn -B clean install -DskipTests # coveralls:report
     - mvn -B org.owasp:dependency-check-maven:check
     - mvn -B -Pcoverage.report,sonar post-site -Dsonar.coverage.jacoco.xmlReportPaths=${TRAVIS_BUILD_DIR}/target/site/jacoco-aggregate/jacoco.xml
+    - git fetch --unshallow # for proper sonar history
     - mvn -B -Pcoverage.report,sonar sonar:sonar -Dsonar.projectKey=yahoo_elide -Dsonar.organization=yahoo -Dsonar.login=${SONAR_TOKEN} -Dsonar.coverage.jacoco.xmlReportPaths=${TRAVIS_BUILD_DIR}/target/site/jacoco-aggregate/jacoco.xml 
     
   after_success:

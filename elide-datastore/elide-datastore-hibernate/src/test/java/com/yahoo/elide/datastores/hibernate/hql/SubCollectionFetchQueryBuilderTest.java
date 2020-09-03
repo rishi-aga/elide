@@ -101,7 +101,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
-                + "JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher  "
+                + "JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher example_Book_publisher  "
                 + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
         String actual = query.getQueryText();
 

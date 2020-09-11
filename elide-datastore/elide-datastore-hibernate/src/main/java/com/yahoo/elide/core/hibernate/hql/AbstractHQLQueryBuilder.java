@@ -262,7 +262,7 @@ public abstract class AbstractHQLQueryBuilder {
             );
             for (Map.Entry<Path, Sorting.SortOrder> entry : validSortingRules.entrySet()) {
                 Path path = entry.getKey();
-                joinClause.append(joinClauseFromPath(path, true));
+                joinClause.append(joinClauseFromPath(path, false));
             }
         }
         return joinClause.toString();

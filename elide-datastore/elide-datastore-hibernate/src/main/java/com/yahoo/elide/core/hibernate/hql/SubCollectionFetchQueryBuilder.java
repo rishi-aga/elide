@@ -72,7 +72,8 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             String filterClause = new FilterTranslator().apply(fe, USE_ALIAS);
 
             String joinClause =  getJoinClauseFromFilters(filterExpression.get())
-                    + extractToOneMergeJoins(relationship.getChildType(), childAlias);
+                    + extractToOneMergeJoins(relationship.getChildType(), childAlias)
+                    + explicitSortJoins(sorting, relationship.getChildType());
 
             //SELECT parent_children from Parent parent JOIN parent.children parent_children
             Query q = session.createQuery(SELECT
@@ -97,6 +98,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + parentName + SPACE + parentAlias
                             + JOIN
                             + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                            + explicitSortJoins(sorting, relationship.getChildType())
                             + extractToOneMergeJoins(relationship.getChildType(), childAlias)
                             + " WHERE " + parentAlias + "=:" + parentAlias
                             + getSortClause(sorting, relationship.getChildType(), USE_ALIAS)

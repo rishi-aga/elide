@@ -39,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -181,7 +182,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, emWrapper)
                             .build();
 
-            EntityGraph entityGraph = createEntityGraph(dictionary, projection);
+            EntityGraph entityGraph = createEntityGraph(scope, projection);
 
             if (scope.getElideSettings() != null
                     && scope.getElideSettings().isEnableJPAFetchToManyRelationship()
@@ -209,7 +210,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), emWrapper)
                         .build();
 
-        EntityGraph entityGraph = createEntityGraph(scope.getDictionary(), projection);
+        EntityGraph entityGraph = createEntityGraph(scope, projection);
         List results;
         if (scope.getElideSettings() != null
                 && scope.getElideSettings().isEnableJPAFetchToManyRelationship()
@@ -322,7 +323,20 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
 
-    private EntityGraph createEntityGraph(EntityDictionary dictionary, EntityProjection projection) {
+    /**
+     * Creates an entity graph for the first encountered to Many relationship that meets the following criteria
+     *  * The relationship has to be present in Entity Projection
+     *  * The relationship type should be ToMany and not computed relationship
+     *  * The relationship Entity should not be presnet in dirtyResource.
+     *      (no mutable operation is done on the relationship entity in this request)
+     *  * If the relationship Entity is presnet in dirtyResource,
+     *      then the relationshipship should have CASCADE.ALL cascade type.
+     * @param scope
+     * @param projection
+     * @return
+     */
+    private EntityGraph createEntityGraph(RequestScope scope, EntityProjection projection) {
+        EntityDictionary dictionary = scope.getDictionary();
         Class<?> entityClass = projection.getType();
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         for (String relationshipName : relationshipNames) {
@@ -330,10 +344,20 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 continue;
             }
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
+
             if (type.isToMany() && !type.isComputed()) {
-                EntityGraph entityGraph = em.createEntityGraph(entityClass);
-                entityGraph.addAttributeNodes(relationshipName);
-                return entityGraph;
+                // To Many Relationship will always be collection type.
+                String relationshipClassName = dictionary.getJsonAliasFor(
+                        dictionary.getParameterizedType(entityClass, relationshipName));
+                boolean isDirtyResource = StreamSupport.stream(scope.getDirtyResources().spliterator(), false)
+                        .anyMatch(resource -> resource.getType().equals(relationshipClassName));
+
+                if (!isDirtyResource || dictionary.cascadeAll(entityClass, relationshipName)) {
+                    EntityGraph entityGraph = em.createEntityGraph(entityClass);
+                    entityGraph.addAttributeNodes(relationshipName);
+                    return entityGraph;
+
+                }
             }
         }
         return null;

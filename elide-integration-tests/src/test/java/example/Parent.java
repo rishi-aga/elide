@@ -20,6 +20,7 @@ import lombok.ToString;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -54,7 +55,8 @@ public class Parent extends BaseId {
     @UpdatePermission(expression = "allow all OR Prefab.Role.None")
     // Hibernate
     @ManyToMany(
-            targetEntity = Child.class
+            targetEntity = Child.class,
+            cascade = CascadeType.ALL
     )
     @JoinTable(
             name = "Parent_Child",

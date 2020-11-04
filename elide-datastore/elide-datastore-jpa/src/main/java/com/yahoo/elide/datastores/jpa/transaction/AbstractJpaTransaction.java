@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jpa.transaction;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.persistence.NoResultException;
@@ -179,7 +181,19 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, emWrapper)
                             .build();
 
-            return query.getQuery().getSingleResult();
+            EntityGraph entityGraph = createEntityGraph(dictionary, projection);
+
+            if (scope.getElideSettings() != null
+                    && scope.getElideSettings().isEnableJPAFetchToManyRelationship()
+                    && entityGraph != null) {
+                return query.getQuery()
+                        .setHint("javax.persistence.loadgraph", entityGraph)
+                        .getSingleResult();
+            } else {
+                return query.getQuery()
+                        .getSingleResult();
+            }
+
         } catch (NoResultException e) {
             return null;
         }
@@ -195,7 +209,18 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), emWrapper)
                         .build();
 
-        List results = query.getQuery().getResultList();
+        EntityGraph entityGraph = createEntityGraph(scope.getDictionary(), projection);
+        List results;
+        if (scope.getElideSettings() != null
+                && scope.getElideSettings().isEnableJPAFetchToManyRelationship()
+                && entityGraph != null) {
+            results = query.getQuery()
+                    .setHint("javax.persistence.loadgraph", entityGraph)
+                    .getResultList();
+        } else {
+            results = query.getQuery()
+                    .getResultList();
+        }
 
         if (pagination != null) {
             //Issue #1429
@@ -294,5 +319,23 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     @Override
     public void cancel(RequestScope scope) {
         jpaTransactionCancel.accept(em);
+    }
+
+
+    private EntityGraph createEntityGraph(EntityDictionary dictionary, EntityProjection projection) {
+        Class<?> entityClass = projection.getType();
+        List<String> relationshipNames = dictionary.getRelationships(entityClass);
+        for (String relationshipName : relationshipNames) {
+            if (!projection.getIncludedRelationsName().contains(relationshipName)) {
+                continue;
+            }
+            RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
+            if (type.isToMany() && !type.isComputed()) {
+                EntityGraph entityGraph = em.createEntityGraph(entityClass);
+                entityGraph.addAttributeNodes(relationshipName);
+                return entityGraph;
+            }
+        }
+        return null;
     }
 }

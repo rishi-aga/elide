@@ -13,7 +13,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.Handlebars
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.hjson.JsonValue;
 import org.hjson.ParseException;
@@ -64,14 +63,10 @@ public class DynamicConfigHelpers {
         DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
         Map<String, Object> variables = new HashMap<>();
         String jsonConfig = hjsonToJson(config);
-        try {
-            if (schemaValidator.verifySchema(Config.MODELVARIABLE, jsonConfig, fileName)) {
-                variables = getModelPojo(jsonConfig, Map.class);
-            }
-        } catch (ProcessingException e) {
-            log.error("Error Validating Variable config : " + e.getMessage());
-            throw new IOException(e);
+        if (schemaValidator.verifySchema(Config.MODELVARIABLE, jsonConfig, fileName)) {
+            variables = getModelPojo(jsonConfig, Map.class);
         }
+
         return variables;
     }
 
@@ -87,13 +82,9 @@ public class DynamicConfigHelpers {
         DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
         ElideTableConfig table = new ElideTableConfig();
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        try {
-            if (schemaValidator.verifySchema(Config.TABLE, jsonConfig, fileName)) {
-                table = getModelPojo(jsonConfig, ElideTableConfig.class);
-            }
-        } catch (ProcessingException e) {
-            log.error("Error Validating Table config : " + e.getMessage());
-            throw new IOException(e);
+
+        if (schemaValidator.verifySchema(Config.TABLE, jsonConfig, fileName)) {
+            table = getModelPojo(jsonConfig, ElideTableConfig.class);
         }
         return table;
     }
@@ -110,13 +101,9 @@ public class DynamicConfigHelpers {
         DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
         ElideDBConfig dbconfig = new ElideDBConfig();
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        try {
-            if (schemaValidator.verifySchema(Config.SQLDBConfig, jsonConfig, fileName)) {
-                dbconfig = getModelPojo(jsonConfig, ElideDBConfig.class);
-            }
-        } catch (ProcessingException e) {
-            log.error("Error Validating DB config : " + e.getMessage());
-            throw new IOException(e);
+
+        if (schemaValidator.verifySchema(Config.SQLDBConfig, jsonConfig, fileName)) {
+            dbconfig = getModelPojo(jsonConfig, ElideDBConfig.class);
         }
         return dbconfig;
     }
@@ -132,13 +119,9 @@ public class DynamicConfigHelpers {
                     Map<String, Object> variables) throws IOException {
         DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        try {
-            if (schemaValidator.verifySchema(Config.SECURITY, jsonConfig, fileName)) {
-                return getModelPojo(jsonConfig, ElideSecurityConfig.class);
-            }
-        } catch (ProcessingException e) {
-            log.error("Error Validating Security config : " + e.getMessage());
-            throw new IOException(e);
+
+        if (schemaValidator.verifySchema(Config.SECURITY, jsonConfig, fileName)) {
+            return getModelPojo(jsonConfig, ElideSecurityConfig.class);
         }
         return null;
     }

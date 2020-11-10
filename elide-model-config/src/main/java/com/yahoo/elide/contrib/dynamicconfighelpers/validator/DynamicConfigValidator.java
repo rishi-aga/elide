@@ -24,7 +24,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -99,25 +98,32 @@ public class DynamicConfigValidator {
         }
     }
 
-    public static void main(String[] args) throws IOException, ParseException {
+    public static void main(String[] args) {
 
         Options options = prepareOptions();
-        CommandLine cli = new DefaultParser().parse(options, args);
 
-        if (cli.hasOption("help")) {
-            printHelp(options);
-            return;
+        try {
+            CommandLine cli = new DefaultParser().parse(options, args);
+
+            if (cli.hasOption("help")) {
+                printHelp(options);
+                return;
+            }
+            if (!cli.hasOption("configDir")) {
+                printHelp(options);
+                System.err.println("Missing required option");
+                System.exit(-2);
+            }
+            String configDir = cli.getOptionValue("configDir");
+
+            DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(configDir);
+            dynamicConfigValidator.readAndValidateConfigs();
+        } catch (IllegalStateException | IOException | ParseException e) {
+            System.err.println(e.getMessage());
+            System.exit(-3);
         }
-        if (!cli.hasOption("configDir")) {
-            printHelp(options);
-            throw new MissingOptionException("Missing required option");
-        }
-        String configDir = cli.getOptionValue("configDir");
 
-        DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(configDir);
-        dynamicConfigValidator.readAndValidateConfigs();
-
-        log.info("Configs Validation Passed!");
+        System.out.println("Configs Validation Passed!");
     }
 
     /**
@@ -461,7 +467,7 @@ public class DynamicConfigValidator {
 
     /**
      * Checks if input string has any of the disallowed words.
-     * @param String input string to validate
+     * @param str input string to validate
      * @param keywords Array of disallowed words
      * @return boolean true if input string does not contain any of the keywords
      *         else false
@@ -472,7 +478,7 @@ public class DynamicConfigValidator {
 
     /**
      * Checks if any word in the input string matches any of the disallowed words.
-     * @param String input string to validate
+     * @param str input string to validate
      * @param splitter regex for splitting input string
      * @param keywords Set of disallowed words
      * @return boolean true if any word in the input string matches any of the

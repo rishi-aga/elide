@@ -33,8 +33,8 @@ public class DynamicConfigSchemaValidatorTest {
         String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/security_invalid.hjson");
         Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.SECURITY, jsonConfig, "security_invalid.hjson"));
-        String expectedMessage = "Schema validation failed for: security_invalid.hjson\n"
-                        + "object instance has properties which are not allowed by the schema: [\"cardinality\",\"description\",\"name\",\"schema$\",\"table\"]";
+        String expectedMessage = "Schema validation failed: [#: extraneous key [schema$] is not permitted, #: extraneous key [name] is not permitted, #: extraneous key [description] is not permitted, #: extraneous key [table] is not permitted, #: extraneous key [cardinality] is not permitted]";
+
         assertEquals(expectedMessage, e.getMessage());
     }
 
@@ -49,8 +49,7 @@ public class DynamicConfigSchemaValidatorTest {
         String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/variables_invalid.hjson");
         Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.MODELVARIABLE, jsonConfig, "variables.hjson"));
-        String expectedMessage = "Schema validation failed for: variables.hjson\n"
-                        + "object instance has properties which are not allowed by the schema: [\"schema$\"]";
+        String expectedMessage = "Schema validation failed: [#: extraneous key [schema$] is not permitted]";
         assertEquals(expectedMessage, e.getMessage());
     }
 
@@ -78,7 +77,7 @@ public class DynamicConfigSchemaValidatorTest {
         String fileName = getFileName(resource);
         Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.TABLE, jsonConfig, fileName));
-        assertTrue(e.getMessage().startsWith("Schema validation failed for: " + fileName));
+        assertTrue(e.getMessage().startsWith("Schema validation failed:"));
     }
 
     // DB config test
@@ -98,8 +97,7 @@ public class DynamicConfigSchemaValidatorTest {
         String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/db_invalid.hjson");
         Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.SQLDBConfig, jsonConfig, "db_invalid.hjson"));
-        String expectedMessage = "Schema validation failed for: db_invalid.hjson\n"
-                        + "ECMA 262 regex \"^jdbc:[0-9A-Za-z_]+:.*$\" does not match input string \"ojdbc:mysql://localhost/testdb?serverTimezone=UTC\" at node: /dbconfigs/1/url";
+        String expectedMessage = "Schema validation failed: [#/dbconfigs/1/url: string [ojdbc:mysql://localhost/testdb?serverTimezone=UTC] does not match pattern ^jdbc:[0-9A-Za-z_]+:.*$]";
         assertEquals(expectedMessage, e.getMessage());
     }
 

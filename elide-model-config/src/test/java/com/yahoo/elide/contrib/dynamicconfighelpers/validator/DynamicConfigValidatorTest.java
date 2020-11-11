@@ -179,7 +179,8 @@ public class DynamicConfigValidatorTest {
             assertEquals(-3, exitStatus);
         });
 
-        assertEquals("Schema validation failed: [#/tables/0/joins/0/type: toAll is not a valid enum value ]\n", error);
+        String expected = "Schema validation failed: [#/tables/0/joins/0/type: string [toAll] does not match pattern ^[Tt][Oo][Oo][Nn][Ee]$, #/tables/0/joins/0/type: string [toAll] does not match pattern ^[Tt][Oo][Mm][Aa][Nn][Yy]$]\n";
+        assertEquals(expected, error);
     }
 
     @Test

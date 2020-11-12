@@ -12,17 +12,7 @@
           "title": "Time granularity",
           "description": "Indicates grain time granularity",
           "type": "string",
-          "anyOf": [
-            { "pattern": "^[Ss][Ee][Cc][Oo][Nn][Dd]$" },
-            { "pattern": "^[Mm][Ii][Nn][Uu][Tt][Ee]$" },
-            { "pattern": "^[Hh][Oo][Uu][Rr]$" },
-            { "pattern": "^[Dd][Aa][Yy]$" },
-            { "pattern": "^[Ii][Ss][Oo][Ww][Ee][Ee][Kk]$" },
-            { "pattern": "^[Ww][Ee][Ee][Kk]$" },
-            { "pattern": "^[Mm][Oo][Nn][Tt][Hh]$" },
-            { "pattern": "^[Qq][Uu][Aa][Rr][Tt][Ee][Rr]$" },
-            { "pattern": "^[Yy][Ee][Aa][Rr]$" }
-          ]
+          "pattern": "^(?i)(second|minute|hour|day|isoweek|week|month|quarter|year)$"
         },
         "sql": {
           "title": "Grain SQL",
@@ -52,10 +42,7 @@
           "title": "Type of Join",
           "description": "Type of the join - toOne or toMany",
           "type": "string",
-          "anyOf": [
-            { "pattern": "^[Tt][Oo][Oo][Nn][Ee]$" },
-            { "pattern": "^[Tt][Oo][Mm][Aa][Nn][Yy]$" }
-          ]
+          "pattern": "^(?i)(toone|tomany)$"
         },
         "definition": {
           "title": "Join definition SQL",
@@ -75,26 +62,13 @@
       "title": "Dimension field type",
       "description": "The data type of the dimension field",
       "type": "string",
-      "anyOf": [
-        { "pattern": "^[Ii][Nn][Tt][Ee][Gg][Ee][Rr]$" },
-        { "pattern": "^[Dd][Ee][Cc][Ii][Mm][Aa][Ll]$" },
-        { "pattern": "^[Mm][Oo][Nn][Ee][Yy]$" },
-        { "pattern": "^[Tt][Ee][Xx][Tt]$" },
-        { "pattern": "^[Cc][Oo][Oo][Rr][Dd][Ii][Nn][Aa][Tt][Ee]$" },
-        { "pattern": "^[Bb][Oo][Oo][Ll][Ee][Aa][Nn]$" }
-      ]
+      "pattern": "^(?i)(integer|decimal|money|text|coordinate|boolean)$"
     },
     "cardinalityTypes": {
       "title": "Table/Dimension cardinality",
       "description": "Table/Dimension cardinality: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
       "type": "string",
-      "anyOf": [
-        { "pattern": "^[Tt][Ii][Nn][Yy]$" },
-        { "pattern": "^[Ss][Mm][Aa][Ll][Ll]$" },
-        { "pattern": "^[Mm][Ee][Dd][Ii][Uu][Mm]$" },
-        { "pattern": "^[Ll][Aa][Rr][Gg][Ee]$" },
-        { "pattern": "^[Hh][Uu][Gg][Ee]$" }
-      ]
+      "pattern": "^(?i)(tiny|small|medium|large|huge)$"
     },
     "measure": {
       "title": "Measure",
@@ -274,7 +248,7 @@
               "title": "Dimension field type",
               "description": "The data type of the dimension field",
               "type": "string",
-              "pattern": "^[Tt][Ii][Mm][Ee]$"
+              "pattern": "^(?i)(time)$"
             },
             "grain": {
               "$ref":"#/definitions/grain"

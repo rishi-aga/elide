@@ -142,9 +142,7 @@ public class DynamicConfigValidatorTest {
     @Test
     public void testBadTableConfigJoinType() {
         String expectedMessage = "Schema validation failed for: table1.hjson\n"
-                        + "instance failed to match at least one required schema among 2 at node: /tables/0/joins/0/type\n"
-                        + "    ECMA 262 regex \"^[Tt][Oo][Oo][Nn][Ee]$\" does not match input string \"toAll\" at node: /tables/0/joins/0/type\n"
-                        + "    ECMA 262 regex \"^[Tt][Oo][Mm][Aa][Nn][Yy]$\" does not match input string \"toAll\" at node: /tables/0/joins/0/type";
+                        + "$.tables[0].joins[0].type: does not match the regex pattern ^(?i)(toone|tomany)$";
 
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                         .main(new String[] {"--configDir", "src/test/resources/validator/bad_table_join_type"}));
@@ -154,12 +152,8 @@ public class DynamicConfigValidatorTest {
     @Test
     public void testBadDimName() {
         String expectedMessage = "Schema validation failed for: table1.hjson\n"
-                        + "instance failed to match at least one required schema among 2 at node: /tables/0/dimensions/1\n"
-                        + "    instance failed to match all required schemas (matched only 1 out of 2) at node: /tables/0/dimensions/1\n"
-                        + "        ECMA 262 regex \"^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$\" does not match input string \"_region\" at node: /tables/0/dimensions/1/name\n"
-                        + "    instance failed to match all required schemas (matched only 0 out of 2) at node: /tables/0/dimensions/1\n"
-                        + "        ECMA 262 regex \"^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$\" does not match input string \"_region\" at node: /tables/0/dimensions/1/name\n"
-                        + "        ECMA 262 regex \"^[Tt][Ii][Mm][Ee]$\" does not match input string \"Text\" at node: /tables/0/dimensions/1/type";
+                        + "$.tables[0].dimensions[1].name: does not match the regex pattern ^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$\n"
+                        + "$.tables[0].dimensions[1].type: does not match the regex pattern ^(?i)(time)$";
 
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                         .main(new String[] {"--configDir", "src/test/resources/validator/bad_dim_name"}));

@@ -34,7 +34,11 @@ public class DynamicConfigSchemaValidatorTest {
         Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.SECURITY, jsonConfig, "security_invalid.hjson"));
         String expectedMessage = "Schema validation failed for: security_invalid.hjson\n"
-                        + "object instance has properties which are not allowed by the schema: [\"cardinality\",\"description\",\"name\",\"schema$\",\"table\"]";
+                        + "$.name: is not defined in the schema and the schema does not allow additional properties\n"
+                        + "$.table: is not defined in the schema and the schema does not allow additional properties\n"
+                        + "$.schema$: is not defined in the schema and the schema does not allow additional properties\n"
+                        + "$.description: is not defined in the schema and the schema does not allow additional properties\n"
+                        + "$.cardinality: is not defined in the schema and the schema does not allow additional properties";
         assertEquals(expectedMessage, e.getMessage());
     }
 
@@ -50,7 +54,7 @@ public class DynamicConfigSchemaValidatorTest {
         Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.MODELVARIABLE, jsonConfig, "variables.hjson"));
         String expectedMessage = "Schema validation failed for: variables.hjson\n"
-                        + "object instance has properties which are not allowed by the schema: [\"schema$\"]";
+                        + "$.schema$: is not defined in the schema and the schema does not allow additional properties";
         assertEquals(expectedMessage, e.getMessage());
     }
 
@@ -99,7 +103,7 @@ public class DynamicConfigSchemaValidatorTest {
         Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.SQLDBConfig, jsonConfig, "db_invalid.hjson"));
         String expectedMessage = "Schema validation failed for: db_invalid.hjson\n"
-                        + "ECMA 262 regex \"^jdbc:[0-9A-Za-z_]+:.*$\" does not match input string \"ojdbc:mysql://localhost/testdb?serverTimezone=UTC\" at node: /dbconfigs/1/url";
+                        + "$.dbconfigs[1].url: does not match the regex pattern ^jdbc:[0-9A-Za-z_]+:.*$";
         assertEquals(expectedMessage, e.getMessage());
     }
 

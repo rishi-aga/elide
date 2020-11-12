@@ -5,27 +5,20 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
-import static com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers.isNullOrEmpty;
 import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHelper.NEWLINE;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.LogLevel;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchema;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Dynamic Model Schema validation.
@@ -33,7 +26,7 @@ import java.util.Map.Entry;
 @Slf4j
 public class DynamicConfigSchemaValidator {
 
-    private static final JsonSchemaFactory FACTORY = JsonSchemaFactory.byDefault();
+    private static final JsonSchemaFactory FACTORY = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V6);
     private JsonSchema tableSchema;
     private JsonSchema securitySchema;
     private JsonSchema variableSchema;
@@ -45,19 +38,17 @@ public class DynamicConfigSchemaValidator {
         variableSchema = loadSchema(Config.MODELVARIABLE.getConfigSchema());
         dbConfigSchema = loadSchema(Config.SQLDBConfig.getConfigSchema());
     }
+
     /**
      *  Verify config against schema.
      * @param configType
      * @param jsonConfig
      * @param fileName
      * @return whether config is valid
-     * @throws IOException
-     * @throws ProcessingException
+     * @throws JsonProcessingException
      */
-    public boolean verifySchema(Config configType, String jsonConfig, String fileName)
-                    throws IOException, ProcessingException {
-        ProcessingReport results = null;
-        boolean isSuccess = false;
+    public boolean verifySchema(Config configType, String jsonConfig, String fileName) throws JsonProcessingException {
+        Set<ValidationMessage> results = null;
 
         switch (configType) {
         case TABLE :
@@ -77,59 +68,22 @@ public class DynamicConfigSchemaValidator {
             log.error("Not a valid config type :" + configType);
             break;
         }
-        isSuccess = (results == null ? false : results.isSuccess());
 
-        if (!isSuccess) {
+        if (!results.isEmpty()) {
             throw new IllegalStateException("Schema validation failed for: " + fileName + getErrorMessages(results));
         }
-        return isSuccess;
+
+        return results.isEmpty();
     }
 
-    private static String getErrorMessages(ProcessingReport report) {
+    private static String getErrorMessages(Set<ValidationMessage> report) {
         List<String> list = new ArrayList<String>();
-        report.forEach(msg -> addEmbeddedMessages(msg.asJson(), list, 0));
+        report.forEach(msg -> list.add(msg.getMessage()));
 
         return NEWLINE + String.join(NEWLINE, list);
     }
 
-    private static void addEmbeddedMessages(JsonNode root, List<String> list, int depth) {
-
-        if (root.has("level") && root.has("message")) {
-            String level = root.get("level").asText();
-
-            if (level.equalsIgnoreCase(LogLevel.ERROR.name()) || level.equalsIgnoreCase(LogLevel.FATAL.name())) {
-                String msg = root.get("message").asText();
-                String pointer = null;
-                if (root.has("instance")) {
-                    JsonNode instanceNode = root.get("instance");
-                    if (instanceNode.has("pointer")) {
-                        pointer = instanceNode.get("pointer").asText();
-                    }
-                }
-                msg = (isNullOrEmpty(pointer)) ? msg : msg + " at node: " + pointer;
-                list.add(String.format("%" + (4 * depth + msg.length()) + "s", msg));
-
-                if (root.has("reports")) {
-                    Iterator<Entry<String, JsonNode>> fields = root.get("reports").fields();
-                    while (fields.hasNext()) {
-                        ArrayNode arrayNode = (ArrayNode) fields.next().getValue();
-                        for (int i = 0; i < arrayNode.size(); i++) {
-                            addEmbeddedMessages(arrayNode.get(i), list, depth + 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private JsonSchema loadSchema(String resource) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Reader reader = new InputStreamReader(DynamicConfigHelpers.class.getResourceAsStream(resource));
-        try {
-            return FACTORY.getJsonSchema(objectMapper.readTree(reader));
-        } catch (IOException | ProcessingException e) {
-            log.error("Error loading schema file " + resource + " to verify");
-            throw new IllegalStateException(e.getMessage());
-        }
+        return FACTORY.getSchema(DynamicConfigHelpers.class.getResourceAsStream(resource));
     }
 }

@@ -13,7 +13,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.Handlebars
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.hjson.JsonValue;
 import org.hjson.ParseException;
@@ -68,7 +67,7 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.MODELVARIABLE, jsonConfig, fileName)) {
                 variables = getModelPojo(jsonConfig, Map.class);
             }
-        } catch (ProcessingException e) {
+        } catch (JsonProcessingException e) {
             log.error("Error Validating Variable config : " + e.getMessage());
             throw new IOException(e);
         }
@@ -91,7 +90,7 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.TABLE, jsonConfig, fileName)) {
                 table = getModelPojo(jsonConfig, ElideTableConfig.class);
             }
-        } catch (ProcessingException e) {
+        } catch (JsonProcessingException e) {
             log.error("Error Validating Table config : " + e.getMessage());
             throw new IOException(e);
         }
@@ -114,7 +113,7 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.SQLDBConfig, jsonConfig, fileName)) {
                 dbconfig = getModelPojo(jsonConfig, ElideDBConfig.class);
             }
-        } catch (ProcessingException e) {
+        } catch (JsonProcessingException e) {
             log.error("Error Validating DB config : " + e.getMessage());
             throw new IOException(e);
         }
@@ -136,7 +135,7 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.SECURITY, jsonConfig, fileName)) {
                 return getModelPojo(jsonConfig, ElideSecurityConfig.class);
             }
-        } catch (ProcessingException e) {
+        } catch (JsonProcessingException e) {
             log.error("Error Validating Security config : " + e.getMessage());
             throw new IOException(e);
         }
